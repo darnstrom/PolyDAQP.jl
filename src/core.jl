@@ -15,7 +15,7 @@ end
 # Ar,br = minrep(A,b)
 # remove constraints for the polyhedron P = {x : A' x ≤ b} 
 # such that {x : Ar' x ≤ br}  = {x : A' x ≤ b} 
-function minrep(A::Matrix{<: Real},b::Vector{<: Real};sense=[],max_radius=1e30, check_unique=true)
+function minrep(A::Matrix{<: Real},b::Vector{<: Real};sense=[],max_radius=1e30, check_unique=true, tol_weak=0)
 
     # Setup DAQP workspace 
     nth,m = size(A)  
@@ -29,7 +29,7 @@ function minrep(A::Matrix{<: Real},b::Vector{<: Real};sense=[],max_radius=1e30, 
     unsafe_store!(Ptr{Cint}(p+fieldoffset(DAQP.Workspace,4)),ms) # set ms 
 
     # Produce minimal representation
-    A,b = minrep(p;check_unique)
+    A,b = minrep(p;check_unique,tol_weak)
 
     # Free DAQP workspace
     DAQP.free_c_workspace(p);
@@ -37,7 +37,7 @@ function minrep(A::Matrix{<: Real},b::Vector{<: Real};sense=[],max_radius=1e30, 
 end
 
 # Minrep interal DAQP 
-function minrep(p::Ptr{Cvoid}; check_unique=true)
+function minrep(p::Ptr{Cvoid}; check_unique=true, tol_weak=0)
 
 
     daqp_ws = unsafe_load(Ptr{DAQP.Workspace}(p))
@@ -54,6 +54,7 @@ function minrep(p::Ptr{Cvoid}; check_unique=true)
         ccall((:reset_daqp_workspace,DAQP.libdaqp),Cvoid,(Ptr{Cvoid},),p);
 
         sense[i] = 5; # Force ith constraint to equality
+        b[i]+=tol_weak; # displace  
         test =ccall((:add_constraint,DAQP.libdaqp),Cint,(Ptr{Cvoid},Cint,Float64),p,i-1,1.0)
 
         # Check if system is infeasible (infeasible => reudandant) 
@@ -70,6 +71,7 @@ function minrep(p::Ptr{Cvoid}; check_unique=true)
                 is_redundant[AS.+1] .=0; 
             end
         end
+        b[i] -= tol_weak;# restore 
         sense[AS.+1].&=~1; # Deactivate TODO: make sure equality constraint are not deactivated 
     end
 
