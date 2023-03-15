@@ -1,0 +1,14 @@
+name = "PolyDAQP"
+uuid = "be5c70c9-e47a-4559-82a9-cba980583202"
+authors = ["Daniel Arnström <daniel.arnstrom@liu.se>"]
+version = "0.1.0"
+
+[deps]
+DAQP = "c47d62df-3981-49c8-9651-128b1cd08617"
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
