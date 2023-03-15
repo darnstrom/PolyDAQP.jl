@@ -112,7 +112,7 @@ function slice(A,b,ids;values = nothing)
 end
 
 ## Containment
-function iscontained(x,A,b;tol=1e-6)
+function iscontained(x,A,b;tol=1e-10)
     n,m = size(A)
     for i = 1:m
         (A[:,i]'*x > b[i]+tol) && return false
@@ -126,7 +126,7 @@ function vrep_2d(A,b)
     vs = Vector{Float64}[]
     visited,i = falses(m),1
     visited[i] = true
-    while(!all(visited))
+    for out = 1:m
         for j = 1:m 
             visited[j] && continue
             L = lu!([A[:,i]'; A[:,j]'],check=false)
@@ -168,4 +168,12 @@ function bounding_box(A,b;sense=nothing)
         end
     end
     return ub,lb 
+end
+## isempty
+function poly_isempty(A::Matrix{<:Real}, b::Vector{<:Real};sense = nothing)
+    nth,m = size(A)  
+    bl = fill(-1e30,m)
+    sense = isnothing(sense) ? zeros(Int32,m) : sense
+    x,fval,exitflag,info = DAQP.quadprog(DAQP.QPj(zeros(0,0),zeros(0),A,b,bl,sense;A_rowmaj=true));
+    return exitflag == -1 
 end
