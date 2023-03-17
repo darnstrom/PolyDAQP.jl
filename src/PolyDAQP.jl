@@ -16,6 +16,8 @@ export bounding_box
 
 include("types.jl")
 export Polyhedron
+
 include("plot.jl")
+export pplot
 
 end # module
