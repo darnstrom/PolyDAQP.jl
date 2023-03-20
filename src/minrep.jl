@@ -2,11 +2,11 @@
 # Ar,br = minrep(A,b)
 # remove constraints for the polyhedron P = {x : A' x ≤ b} 
 # such that {x : Ar' x ≤ br}  = {x : A' x ≤ b} 
-function minrep(A::Matrix{<: Real},b::Vector{<: Real};sense=[],max_radius=1e30, check_unique=true, tol_weak=0)
+function minrep(A::Matrix{<: Real},b::Vector{<: Real};sense=[],max_radius=1e30, check_unique=true, tol_weak=0, return_ids=false)
 
     # Setup DAQP workspace 
     nth,m = size(A)  
-    poly_isempty(A,b) && return zeros(nth,0), zeros(0)
+    isempty(A,b) && return zeros(nth,0), zeros(0)
     ms = length(b)-m;
     p=DAQP.setup_c_workspace(nth);
     blower = fill(-1e30,m);
@@ -17,11 +17,11 @@ function minrep(A::Matrix{<: Real},b::Vector{<: Real};sense=[],max_radius=1e30, 
     unsafe_store!(Ptr{Cint}(p+fieldoffset(DAQP.Workspace,4)),ms) # set ms 
 
     # Produce minimal representation
-    A,b = minrep(p;check_unique,tol_weak)
+    A,b,nonred_ids = minrep(p;check_unique,tol_weak)
 
     # Free DAQP workspace
     DAQP.free_c_workspace(p);
-    return A,b
+    return return_ids ? (A,b,nonred_ids) : (A,b)
 end
 
 # Minrep interal DAQP 
@@ -80,6 +80,6 @@ function minrep(p::Ptr{Cvoid}; check_unique=true, tol_weak=0)
     end
     sense[1:m] .= 0 # reset sense
     nonred_ids = findall(is_redundant.==0)
-    return A[:,nonred_ids],b[nonred_ids] 
+    return A[:,nonred_ids],b[nonred_ids],nonred_ids 
 end
 
