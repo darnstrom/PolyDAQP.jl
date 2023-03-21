@@ -59,6 +59,7 @@ function project(x::Vector{<:Real},A::Matrix{<:Real}, b::Vector{<:Real})
     return xp
 end
 ## Minkowski
+import Base.sum
 function sum(p::Polyhedron, q::Polyhedron)
     np,mp = size(p.A)
     nq,mq = size(q.A)

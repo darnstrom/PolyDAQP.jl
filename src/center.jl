@@ -1,4 +1,8 @@
 ## Chebyshev center
+function center(q::Polyhedron;sense=nothing, isnormalized = false, p =2)
+    center(q.A,q.b;sense,isnormalized,p)
+end
+
 function center(A::Matrix{<:Real} ,b::Vector{<:Real};sense=nothing, isnormalized = false, p =2)
     n,m = size(A)
     bl = fill(-1e30,m)

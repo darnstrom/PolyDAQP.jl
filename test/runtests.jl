@@ -48,3 +48,46 @@ end
     @test all(abs.(lb-lbm) .< δ)
 end
 
+@testset "Elimination" begin
+    n,m = 6,40
+    A = randn(n,m)
+    b = rand(m)
+    ub,lb= bounding_box(A,b) 
+
+    An,bn = eliminate(A,b,[4,5,6])
+    ubn,lbn = bounding_box(An,bn) 
+    @test all(abs.(ub[1:3]-ubn) .< δ)
+    @test all(abs.(lb[1:3]-lbn) .< δ)
+end
+
+@testset "Affine maps" begin
+    n,m = 10,100
+    A = randn(n,m)
+    b = rand(m)
+    ub,lb= bounding_box(A,b) 
+
+    v = randn(n)
+    pv = Polyhedron(A,b)+v
+    ubv,lbv = bounding_box(pv.A,pv.b)
+    @test all(abs.(ub+v-ubv) .< δ)
+    @test all(abs.(lb+v-lbv) .< δ)
+
+
+    # Simple 2D example to get vertices 
+    n,m = 2,50;
+    A,b = randn(2,100), rand(100)
+    Am,bm = minrep(A,b)
+    vs = PolyDAQP.vrep_2d(Am,bm) 
+    F = randn(2,2)
+    Fvsr = [F*v for v in vs]
+    p = Polyhedron(Am,bm) 
+    Fp = F*p
+    Fvs= PolyDAQP.vrep_2d(minrep(Fp.A,Fp.b)...)
+
+    errors = Float64[] 
+    for (v1,v2) in zip(sort(Fvs),sort(Fvsr))
+        push!(errors, norm(v1-v2))
+    end
+    @test all(errors .< δ)
+
+end

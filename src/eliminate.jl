@@ -1,4 +1,8 @@
-function eliminate(A,b,ids;tol_weak=0)
+function eliminate(p::Polyhedron,ids::Vector{<:Integer};tol_weak= 0)
+    return Polyhedron(eliminate(p.A,p.b,ids;tol_weak)...)
+end
+
+function eliminate(A::Matrix{<:Real},b::Vector{<:Real},ids::Vector{<:Integer};tol_weak=0)
     ids = sort(ids,rev = true) #TODO: allow for other ordering
     n0,m0 = size(A)
     level=1
@@ -23,18 +27,17 @@ function eliminate(A,b,ids;tol_weak=0)
         for jp in Ip
             for jn in In
                 Hcand = H[:,jp] .| H[:,jn]
-                sum(Hcand) > level+1 && continue
+                sum(Hcand) > level+1 && continue # Chernikov
                 An = hcat(An, A[id,jp]*A[mask,jn] - A[id,jn]*A[mask,jp])
                 bn = vcat(bn, A[id,jp]*b[jn] - A[id,jn]*b[jp])
                 #normalize
-                nrm = norm(view(An,:,size(An,2)))
-                An[:,end] ./= nrm; bn[end]/=nrm
-
+                new_row = size(An,2)
+                nrm = norm(view(An,:,new_row))
+                An[:,new_row] ./= nrm; bn[new_row]/=nrm
                 Hn = hcat(Hn,Hcand)
             end
         end
         A,b,nonred_ids = minrep(An,bn;tol_weak,return_ids=true)
-        #A,b = minrep(An,bn;tol_weak=0)
         H = Hn[:,nonred_ids]
         level+=1
     end

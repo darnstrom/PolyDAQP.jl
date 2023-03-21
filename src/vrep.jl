@@ -1,6 +1,10 @@
 ## Naive vertex enumeration for 2D
-function vrep_2d(A,b)
+function vrep_2d(p::Polyhedron)
+    return vrep_2d(p.A,p.b)
+end
+function vrep_2d(A::Matrix{<:Real},b::Vector{<:Real})
     n,m = size(A)
+    n != 2 && error("vrep currently supported for two-dimensional polyhedra") 
     vs = Vector{Float64}[]
     m==0 && return vs
     visited,i = falses(m),1

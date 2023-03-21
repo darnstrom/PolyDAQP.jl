@@ -1,8 +1,11 @@
+function minrep(p::Polyhedron;sense=Int32[],keep=Int[],tol_weak=0,check_unique=false)
+    return(Polyhedron(minrep(p.A,p.b;sense,keep,tol_weak,check_unique)...))
+end
 ## Minimal representation 
 # Ar,br = minrep(A,b)
 # remove constraints for the polyhedron P = {x : A' x ≤ b} 
 # such that {x : Ar' x ≤ br}  = {x : A' x ≤ b} 
-function minrep(A::Matrix{<: Real},b::Vector{<: Real};sense=[],max_radius=1e30, check_unique=true, tol_weak=0, return_ids=false)
+function minrep(A::Matrix{<: Real},b::Vector{<: Real};sense=Int32[],max_radius=1e30, check_unique=true, tol_weak=0, return_ids=false, keep=Int[])
 
     # Setup DAQP workspace 
     nth,m = size(A)  
@@ -17,7 +20,7 @@ function minrep(A::Matrix{<: Real},b::Vector{<: Real};sense=[],max_radius=1e30, 
     unsafe_store!(Ptr{Cint}(p+fieldoffset(DAQP.Workspace,4)),ms) # set ms 
 
     # Produce minimal representation
-    A,b,nonred_ids = minrep(p;check_unique,tol_weak)
+    A,b,nonred_ids = minrep(p;check_unique,tol_weak,keep)
 
     # Free DAQP workspace
     DAQP.free_c_workspace(p);
@@ -25,8 +28,7 @@ function minrep(A::Matrix{<: Real},b::Vector{<: Real};sense=[],max_radius=1e30, 
 end
 
 # Minrep interal DAQP 
-function minrep(p::Ptr{Cvoid}; check_unique=true, tol_weak=0)
-
+function minrep(p::Ptr{Cvoid}; check_unique=true, tol_weak=0,keep=Int[])
 
     daqp_ws = unsafe_load(Ptr{DAQP.Workspace}(p))
     m,n = daqp_ws.m, daqp_ws.n
@@ -36,6 +38,7 @@ function minrep(p::Ptr{Cvoid}; check_unique=true, tol_weak=0)
 
     # Start finding redundant constraints
     is_redundant = -ones(Cint,m); 
+    is_redundant[keep] .= 0
     for i = 1:m
         (is_redundant[i]!= -1 || sense[i]&4 != 0) && continue; # Decided from previous iteration 
 
@@ -43,15 +46,15 @@ function minrep(p::Ptr{Cvoid}; check_unique=true, tol_weak=0)
 
         sense[i] = 5; # Force ith constraint to equality
         b[i]+=tol_weak; # displace  
-        test =ccall((:add_constraint,DAQP.libdaqp),Cint,(Ptr{Cvoid},Cint,Float64),p,i-1,1.0)
+        ccall((:add_constraint,DAQP.libdaqp),Cint,(Ptr{Cvoid},Cint,Float64),p,i-1,1.0)
 
         # Check if system is infeasible (infeasible => reudandant) 
         exitflag =ccall((:daqp_ldp,DAQP.libdaqp), Int32, (Ptr{Cvoid},),p);
-        #ws.nLPs +=1
         daqp_ws = unsafe_load(Ptr{DAQP.Workspace}(p))
         AS = unsafe_wrap(Vector{Cint}, daqp_ws.WS, daqp_ws.n_active, own=false)
         if(exitflag==-1)
             is_redundant[i]=1
+            sense[i] &= ~1; # deactivate (remains immutable so will be ignored henceforth)
         else
             is_redundant[i]=0
             sense[i] &=~4; # Should be modifiable in later iterations 
@@ -60,7 +63,7 @@ function minrep(p::Ptr{Cvoid}; check_unique=true, tol_weak=0)
             end
         end
         b[i] -= tol_weak;# restore 
-        sense[AS.+1].&=~1; # Deactivate TODO: make sure equality constraint are not deactivated 
+        ccall((:deactivate_constraints,DAQP.libdaqp), Cvoid, (Ptr{Cvoid},),p); # cleanup sense
     end
 
     # Check for unique
@@ -82,4 +85,3 @@ function minrep(p::Ptr{Cvoid}; check_unique=true, tol_weak=0)
     nonred_ids = findall(is_redundant.==0)
     return A[:,nonred_ids],b[nonred_ids],nonred_ids 
 end
-
