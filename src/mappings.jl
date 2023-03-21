@@ -1,6 +1,5 @@
 ## Minkowski
-import Base.sum
-function sum(p::Polyhedron, q::Polyhedron)
+function Base.:sum(p::Polyhedron, q::Polyhedron)
     np,mp = size(p.A)
     nq,mq = size(q.A)
     Alift = [zeros(nq,mp) q.A;p.A -q.A] 
@@ -9,15 +8,14 @@ function sum(p::Polyhedron, q::Polyhedron)
     return Polyhedron(As,bs)
 end
 
-function sum(p::Polyhedron, v::Vector{<:Real})
+function Base.:sum(p::Polyhedron, v::Vector{<:Real})
     return Polyhedron(p.A,p.b+p.A'*v)
 end
 
-import Base: + 
-+(p::Polyhedron,q::Polyhedron) = sum(p,q)
+Base.:+(p::Polyhedron,q::Polyhedron) = sum(p,q)
 ⊕(p::Polyhedron,q::Polyhedron) = sum(p,q)
-+(p::Polyhedron,v::Vector{<:Real}) = sum(p,v)
-+(v::Vector{<:Real},p::Polyhedron) = sum(p,v)
+Base.:+(p::Polyhedron,v::Vector{<:Real}) = sum(p,v)
+Base.:+(v::Vector{<:Real},p::Polyhedron) = sum(p,v)
 
 ## Linear transformation
 function linear_transform(p::Polyhedron, F::Matrix{<:Real})
@@ -36,6 +34,5 @@ function linear_transform(p::Polyhedron, F::Matrix{<:Real})
         #TODO (will lead to a lower dimensional...) 
     end
 end
-import Base: * 
-*(F::Matrix{<:Real},p::Polyhedron) = linear_transform(p,F)
-*(p::Polyhedron, F::Matrix{<:Real}) = Polyhedron(F'*p.A,p.b) 
+Base.:*(F::Matrix{<:Real},p::Polyhedron) = linear_transform(p,F)
+Base.:*(p::Polyhedron, F::Matrix{<:Real}) = Polyhedron(F'*p.A,p.b) 

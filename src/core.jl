@@ -1,11 +1,10 @@
 ## Containment
-import Base.∈
-∈(v::Vector{<:Real},p::Polyhedron) = contains(p,v)
+Base.:∈(v::Vector{<:Real},p::Polyhedron) = contains(p,v)
 
-function contains(p::Polyhedron,v::Vector{<:Real};tol = 1e-10)
+function Base.:contains(p::Polyhedron,v::Vector{<:Real};tol = 1e-10)
     return contains(p.A,p.b,v;tol)
 end
-function contains(A,b,x;tol=1e-10)
+function Base.:contains(A::Matrix{<:Real},b::Vector{<:Real},x::Vector{<:Real} ;tol=1e-10)
     n,m = size(A)
     for i = 1:m
         (A[:,i]'*x > b[i]+tol) && return false
@@ -14,11 +13,10 @@ function contains(A,b,x;tol=1e-10)
 end
 
 ## isempty
-import Base.isempty
-function isempty(p::Polyhedron;sense=nothing)
+function Base.:isempty(p::Polyhedron;sense=nothing)
     return isempty(p.A,p.b;sense)
 end
-function isempty(A::Matrix{<:Real}, b::Vector{<:Real};sense = nothing)
+function Base.:isempty(A::Matrix{<:Real}, b::Vector{<:Real};sense = nothing)
     nth,m = size(A)  
     bl = fill(-1e30,m)
     sense = isnothing(sense) ? zeros(Int32,m) : sense
@@ -53,5 +51,4 @@ function project(x::Vector{<:Real},A::Matrix{<:Real}, b::Vector{<:Real})
     return xp
 end
 ## Size 
-import Base: size
-size(p::Polyhedron) = size(p.A)
+Base.:size(p::Polyhedron) = size(p.A)
