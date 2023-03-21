@@ -16,7 +16,7 @@ function vrep_2d(A::Matrix{<:Real},b::Vector{<:Real})
             r = [b[i];b[j]]
             !issuccess(L) && continue
             v = ldiv!(L,r)
-            if(iscontained(v,A,b))
+            if(contains(A,b,v))
                 push!(vs,v)
                 i, visited[j] = j, true
                 break
@@ -27,7 +27,7 @@ function vrep_2d(A::Matrix{<:Real},b::Vector{<:Real})
     L = lu!([A[:,i]'; A[:,1]'],check=false)
     r = [b[i];b[1]]
     v = ldiv!(L,r)
-    if(iscontained(v,A,b))
+    if(contains(A,b,v))
         push!(vs,v)
     else
         @warn "Could not close cycle"

@@ -5,7 +5,7 @@ include("types.jl")
 export Polyhedron
 
 include("core.jl")
-export slice,iscontained,isfeasible,sum,+,⊕
+export contains,isempty,isfulldim,isfeasible,∈,project
 
 include("center.jl")
 export center
@@ -22,5 +22,11 @@ export bounding_box
 
 include("plot.jl")
 export pplot
+
+include("slice.jl")
+export slice
+
+include("mappings.jl")
+export sum,+,⊕,*
 
 end # module

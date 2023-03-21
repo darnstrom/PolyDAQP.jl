@@ -3,6 +3,10 @@ function eliminate(p::Polyhedron,ids::Vector{<:Integer};tol_weak= 0)
 end
 
 function eliminate(A::Matrix{<:Real},b::Vector{<:Real},ids::Vector{<:Integer};tol_weak=0)
+    length(ids) == 0 && return A,b
+
+    A,b = minrep(A,b) # Start with  redundancy removal 
+
     ids = sort(ids,rev = true) #TODO: allow for other ordering
     n0,m0 = size(A)
     level=1
