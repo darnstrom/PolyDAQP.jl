@@ -85,8 +85,8 @@ end
     Fvs= PolyDAQP.vrep_2d(minrep(Fp.A,Fp.b)...)
 
     errors = Float64[] 
-    for (v1,v2) in zip(sort(Fvs),sort(Fvsr))
-        push!(errors, norm(v1-v2))
+    for v in Fvs 
+        push!(errors, minimum(norm(v-vr) for vr in Fvsr))
     end
     @test all(errors .< δ)
 

@@ -1,4 +1,8 @@
 ## Minkowski
+"""
+    p + q
+Compute the Minkowski sum of the polyhera `p` and `q` 
+"""
 function Base.:sum(p::Polyhedron, q::Polyhedron)
     np,mp = size(p.A)
     nq,mq = size(q.A)
@@ -8,6 +12,10 @@ function Base.:sum(p::Polyhedron, q::Polyhedron)
     return Polyhedron(As,bs)
 end
 
+"""
+    p + v
+Translate the polyhedra `p` by the vector `v` 
+"""
 function Base.:sum(p::Polyhedron, v::Vector{<:Real})
     return Polyhedron(p.A,p.b+p.A'*v)
 end
@@ -34,5 +42,10 @@ function linear_transform(p::Polyhedron, F::Matrix{<:Real})
         #TODO (will lead to a lower dimensional...) 
     end
 end
+
+"""
+    q = F*p
+Compute the Polyhedron `q` ``= \\{y: ∃x ∈ p \\text{ and } y=Fx\\}``
+"""
 Base.:*(F::Matrix{<:Real},p::Polyhedron) = linear_transform(p,F)
 Base.:*(p::Polyhedron, F::Matrix{<:Real}) = Polyhedron(F'*p.A,p.b) 

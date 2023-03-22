@@ -1,10 +1,12 @@
+## Minimal representation 
+"""
+    q = minrep(p)
+Remove constraints for the polyhedron `p` ``= \\{x : A' x ≤ b\\}`` 
+such that `q` ``= \\{x : C x ≤ d\\}  = \\{x : A' x ≤ b\\}``, with `size(C,2)` ≤ `size(A,2)` 
+"""
 function minrep(p::Polyhedron;sense=Int32[],keep=Int[],tol_weak=0,check_unique=false)
     return(Polyhedron(minrep(p.A,p.b;sense,keep,tol_weak,check_unique)...))
 end
-## Minimal representation 
-# Ar,br = minrep(A,b)
-# remove constraints for the polyhedron P = {x : A' x ≤ b} 
-# such that {x : Ar' x ≤ br}  = {x : A' x ≤ b} 
 function minrep(A::Matrix{<: Real},b::Vector{<: Real};sense=Int32[],max_radius=1e30, check_unique=true, tol_weak=0, return_ids=false, keep=Int[])
 
     # Setup DAQP workspace 

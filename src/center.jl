@@ -1,4 +1,8 @@
 ## Chebyshev center
+"""
+    c,r = center(q; p=2)
+Return the Chebyshev ball in p-norm, centered at `c` with radius `r`
+"""
 function center(q::Polyhedron;sense=nothing, isnormalized = false, p =2)
     center(q.A,q.b;sense,isnormalized,p)
 end

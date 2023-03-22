@@ -1,6 +1,8 @@
 module PolyDAQP
 using DAQP, LinearAlgebra
 
+export bounding_box
+
 include("types.jl")
 export Polyhedron
 
@@ -18,7 +20,7 @@ export minrep
 include("vrep.jl")
 
 include("boundingbox.jl")
-export bounding_box 
+#export bounding_box 
 
 include("plot.jl")
 export pplot

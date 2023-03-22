@@ -1,4 +1,9 @@
 ## Bounding box
+"""
+    ub,lb = bounding_box(p)
+Return `ub`,`lb` that define the bounding box of the Polyhedron `p`
+(``p \\subseteq \\{x: lb ≤ x ≤ ub\\}``)
+"""
 function bounding_box(p::Polyhedron ;sense=nothing)
     return bounding_box(p.A,p.b;sense)
 end

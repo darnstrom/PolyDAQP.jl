@@ -1,3 +1,7 @@
+"""
+     q = eliminate(p ,ids)
+Eliminate variables given by `ids` for the Polyhedron `p` using Fourier-Chernikov
+"""
 function eliminate(p::Polyhedron,ids::Vector{<:Integer};tol_weak= 0)
     return Polyhedron(eliminate(p.A,p.b,ids;tol_weak)...)
 end
