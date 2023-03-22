@@ -5,7 +5,7 @@ include("types.jl")
 export Polyhedron
 
 include("core.jl")
-export contains,isempty,isfulldim,isfeasible,∈,project
+export contains,isempty,isfulldim,isfeasible,∈,project,proj,proj⊥,intersect
 
 include("center.jl")
 export center

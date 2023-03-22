@@ -50,5 +50,11 @@ function project(x::Vector{<:Real},A::Matrix{<:Real}, b::Vector{<:Real})
     xp,_,_,_ = DAQP.quadprog(DAQP.QPj(zeros(0,0),x,A,b,fill(-1e30,m),zeros(Int32,m);A_rowmaj=true))
     return xp
 end
+proj(p::Polyhedron,x::Vector{<:Real}) = project(x,p)
+proj⊥(p::Polyhedron,x::Vector{<:Real}) = x-project(x,p)
+## Intersection
+function Base.intersect(p::Polyhedron,q::Polyhedron)
+    return Polyhedron(hcat(p.A,q.A), vcat(p.b,q.b))
+end
 ## Size 
 Base.:size(p::Polyhedron) = size(p.A)
