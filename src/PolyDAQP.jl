@@ -29,7 +29,7 @@ include("plot.jl")
 export pplot
 
 include("predicate.jl")
-export contains,isempty,isfulldim,isfeasible,∈,
+export contains,isempty,isfulldim,isfeasible,∈
 
 include("slice.jl")
 export slice
