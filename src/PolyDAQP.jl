@@ -1,34 +1,39 @@
 module PolyDAQP
 using DAQP, LinearAlgebra
 
-export bounding_box
-
+# Types
 include("types.jl")
 export Polyhedron
 
-include("core.jl")
-export contains,isempty,isfulldim,isfeasible,∈,project,proj,proj⊥,intersect
+# Methods
+include("boundingbox.jl")
+export bounding_box
 
 include("center.jl")
 export center
 
+include("core.jl")
+export project,proj,proj⊥,intersect
+
+
 include("eliminate.jl")
 export eliminate
 
+include("mappings.jl")
+export sum,+,⊕,*
+
 include("minrep.jl")
 export minrep
-include("vrep.jl")
-
-include("boundingbox.jl")
-#export bounding_box 
 
 include("plot.jl")
 export pplot
 
+include("predicate.jl")
+export contains,isempty,isfulldim,isfeasible,∈,
+
 include("slice.jl")
 export slice
 
-include("mappings.jl")
-export sum,+,⊕,*
+include("vrep.jl")
 
 end # module
