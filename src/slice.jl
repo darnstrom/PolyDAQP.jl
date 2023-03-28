@@ -1,4 +1,7 @@
 ## Slice
+function slice(p::Polyhedron,ids::Vector{<:Integer};values=nothing, tol_zero=1e-10)
+    return Polyhedron(slice(p.A,p.b,ids;values,tol_zero)...);
+end
 function slice(A::Matrix{<:Real}, b::Vector{<:Real},ids::Vector{<:Integer};values = nothing,tol_zero=1e-10)
     n,m = size(A)
     ids_keep = setdiff(collect(1:n),ids)

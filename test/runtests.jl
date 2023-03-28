@@ -1,6 +1,7 @@
 using PolyDAQP
 using LinearAlgebra
 using Test
+using RecipesBase
 
 δ = 1e-8
 
@@ -11,7 +12,8 @@ using Test
         A = randn(n,m)
         Anorms = [norm(c,p) for c in eachcol(A)] 
         b = A'*cref+Anorms*rref
-        c,r = center(A,b;p) 
+        q = Polyhedron(A,b)
+        c,r = center(q;p) 
         @test abs(r-rref) < δ 
     end
 end
@@ -20,7 +22,8 @@ end
     n,m = 10,100
     A = randn(n,m)
     b = rand(m)
-    ub,lb = bounding_box(A,b) 
+    p = Polyhedron(A,b)
+    ub,lb = bounding_box(p) 
     @test all(ub.>=lb)
 
 
@@ -28,7 +31,8 @@ end
     A,b = randn(2,100), rand(100)
     ub,lb = bounding_box(A,b)
     Am,bm = minrep(A,b)
-    vs = PolyDAQP.vrep_2d(Am,bm) 
+    pm = Polyhedron(Am,bm)
+    vs = PolyDAQP.vrep_2d(pm) 
     ubref = maximum(reduce(hcat,vs),dims=2)
     lbref = minimum(reduce(hcat,vs),dims=2)
     @test all(abs.(ub-ubref) .< δ)
@@ -37,33 +41,32 @@ end
 
 @testset "Minrep" begin
     n,m = 10,100
-    A = randn(n,m)
-    b = rand(m)
-    Am,bm = minrep(A,b)
-    @test length(bm) < m
+    A,b = randn(n,m), rand(m)
+    p = Polyhedron(A,b)
+    pm = minrep(p)
+    @test length(pm.b) < m
     # Make sure the bounding box is the same 
     ub,lb= bounding_box(A,b) 
-    ubm,lbm = bounding_box(A,b) 
+    ubm,lbm = bounding_box(pm.A,pm.b) 
     @test all(abs.(ub-ubm) .< δ)
     @test all(abs.(lb-lbm) .< δ)
 end
 
 @testset "Elimination" begin
     n,m = 6,40
-    A = randn(n,m)
-    b = rand(m)
-    ub,lb= bounding_box(A,b) 
+    A,b = randn(n,m), rand(m)
+    p = Polyhedron(A,b)
+    ub,lb= bounding_box(p) 
 
-    An,bn = eliminate(A,b,[4,5,6])
-    ubn,lbn = bounding_box(An,bn) 
+    pn = eliminate(p,[4,5,6])
+    ubn,lbn = bounding_box(pn) 
     @test all(abs.(ub[1:3]-ubn) .< δ)
     @test all(abs.(lb[1:3]-lbn) .< δ)
 end
 
 @testset "Affine maps" begin
     n,m = 10,100
-    A = randn(n,m)
-    b = rand(m)
+    A,b = randn(n,m), rand(m)
     ub,lb= bounding_box(A,b) 
 
     v = randn(n)
@@ -74,8 +77,8 @@ end
 
 
     # Simple 2D example to get vertices 
-    n,m = 2,50;
-    A,b = randn(2,100), rand(100)
+    n,m = 2,100;
+    A,b = randn(n,m), rand(m)
     Am,bm = minrep(A,b)
     vs = PolyDAQP.vrep_2d(Am,bm) 
     F = randn(2,2)
@@ -90,4 +93,64 @@ end
     end
     @test all(errors .< δ)
 
+
+    n,m = 3,25
+    p = Polyhedron(randn(n,m),rand(m))
+    q = Polyhedron(randn(n,m),rand(m))
+    ppq = minrep(p+q)
+    ppq2 = minrep(p⊕q)
+    @test size(ppq) == size(ppq2)
+
+    c,r = center(p)
+    F = randn(n,n)
+    
+    @test F\c ∈ (p*F)
+
+end
+
+@testset "Predicates" begin
+    n,m = 10,100
+    c = randn(n) 
+    A = randn(n,m)
+    b = A'*c+rand(m)
+    p = Polyhedron(A,b)
+    @test c ∈ p 
+    @test !isempty(p)
+    @test isfulldim(p)
+
+    x = 100*randn(5)
+end
+
+@testset "Projection" begin
+    n,m = 10,100
+    x = 100*randn(n) 
+    A,b = randn(n,m), rand(m)
+    p = Polyhedron(A,b)
+    @test proj(p,x) ∈ p 
+    @test proj⊥(p,x) ∉ p 
+    @test norm(x-(proj(p,x)+proj⊥(p,x))) < δ
+end
+
+@testset "Intersection" begin
+    n,m = 5,5
+    x = randn(n)
+    p = Polyhedron(randn(n,m), rand(m))
+    q = Polyhedron(randn(n,m), rand(m))
+    pq = p ∩ q
+    xpq = proj(pq,x)
+
+    @test xpq ∈ p 
+    @test xpq ∈ q 
+end
+
+@testset "Plotting" begin
+    n,m = 10,100
+    A,b = randn(n,m), rand(m)
+    p = slice(Polyhedron(A,b),collect(3:n))
+    A,b = randn(n,m), rand(m)
+    q = slice(Polyhedron(A,b),collect(3:n))
+    pl = pplot([p, q]);
+
+    d = RecipesBase.apply_recipe(Dict{Symbol,Any}(),p)
+    #d = RecipesBase.apply_recipe(Dict{Symbol,Any}(),[p,q])
 end
