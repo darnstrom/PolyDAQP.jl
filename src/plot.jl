@@ -75,7 +75,7 @@ function pgfplot(vtable::Matrix{<:Real},patches::Matrix{<:Real})
     @pgf  Plot3(
                 {
                  patch,
-                 opacity=0.7,
+                 opacity=1.0,
                  line_width="0.5pt",
                  faceted_color="black",
                  "patch type" = "polygon",
@@ -96,7 +96,9 @@ function pplot(ps::Vector{Polyhedron};cs=nothing, fs=nothing, opts=Dict{Symbol,A
     end
     vtable,patches = vertex_connections(vss;cs)
 
-    push!(PGFPlotsX.CUSTOM_PREAMBLE,raw"\usepgfplotslibrary{patchplots}")
+    if(raw"\usepgfplotslibrary{patchplots}" ∉ PGFPlotsX.CUSTOM_PREAMBLE)
+        push!(PGFPlotsX.CUSTOM_PREAMBLE,raw"\usepgfplotslibrary{patchplots}")
+    end
     pl = pgfplot(vtable,patches)
     @pgf Aopts ={
                 }
