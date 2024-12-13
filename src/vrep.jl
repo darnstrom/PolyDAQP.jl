@@ -19,25 +19,6 @@ function vrep_2d(A::Matrix{<:Real},b::Vector{<:Real};tol = 1e-10)
             end
         end
     end
-    return convexhull(vs)
+    c = sum(vs)/length(vs) 
+    return sort(vs, by= x->atan(x[2]-c[2],x[1]-c[1]))
 end
-
-function convexhull(vs)
-    nv = length(vs)
-    nv == 0 && return vs
-    clockwise(p, q, r) = 0 < ((r[2] - p[2]) * (q[1] - p[1]) - (r[1] - p[1]) * (q[2] - p[2]))
-    # Gift wrapping
-    hull = [argmin(first.(vs))] # Start with left-most point 
-
-    while length(hull) == 1 || hull[1] != hull[end] 
-        next = hull[end] % nv + 1 # select the preceeding point as next candidate 
-        for j = 1:nv # compare with other points 
-            if clockwise(vs[hull[end]], vs[next], vs[j]) # If "more to the left", switch
-                next = j
-            end
-        end
-        push!(hull, next)
-    end
-    return vs[hull]
-end
-
