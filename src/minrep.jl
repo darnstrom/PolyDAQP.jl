@@ -41,8 +41,16 @@ function minrep(p::Ptr{Cvoid}; check_unique=true, tol_weak=0,keep=Int[])
     # Start finding redundant constraints
     is_redundant = -ones(Cint,m); 
     is_redundant[keep] .= 0
+    for i in 1:m
+        if(sense[i]== DAQP.IMMUTABLE)
+            is_redundant[i] = 1 # Trivially redundant
+        elseif(sense[i] == DAQP.EQUALITY)
+            is_redundant[i] = 0 # Trivially nonredundant
+        end
+    end
+
     for i = 1:m
-        (is_redundant[i]!= -1 || sense[i]&4 != 0) && continue; # Decided from previous iteration 
+        is_redundant[i]!= -1 && continue; # Decided from previous iteration
 
         ccall((:reset_daqp_workspace,DAQP.libdaqp),Cvoid,(Ptr{Cvoid},),p);
 
