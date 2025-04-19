@@ -1,5 +1,6 @@
 module PolyDAQP
-using DAQP, LinearAlgebra
+using DAQPBase, LinearAlgebra
+DAQP = DAQPBase
 
 # Types
 include("types.jl")
