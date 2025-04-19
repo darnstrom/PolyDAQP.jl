@@ -19,6 +19,7 @@ function vrep_2d(A::Matrix{<:Real},b::Vector{<:Real};tol = 1e-10)
             end
         end
     end
+    if(isempty(vs)) return vs;
     c = sum(vs)/length(vs) 
     return sort(vs, by= x->atan(x[2]-c[2],x[1]-c[1]))
 end
