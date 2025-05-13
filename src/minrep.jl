@@ -4,10 +4,11 @@
 Remove constraints for the polyhedron `p` ``= \\{x : A' x ≤ b\\}`` 
 such that `q` ``= \\{x : C x ≤ d\\}  = \\{x : A' x ≤ b\\}``, with `size(C,2)` ≤ `size(A,2)` 
 """
-function minrep(p::Polyhedron;sense=Int32[],keep=Int[],tol_weak=0,check_unique=false)
-    return(Polyhedron(minrep(p.A,p.b;sense,keep,tol_weak,check_unique)...))
+function minrep(p::Polyhedron;sense=Int32[],keep=Int[],tol_weak=0,
+        check_unique=false,daqp_settings=nothing)
+    return(Polyhedron(minrep(p.A,p.b;sense,keep,tol_weak,check_unique,daqp_settings)...))
 end
-function minrep(A::Matrix{<: Real},b::Vector{<: Real};sense=Int32[],max_radius=1e30, check_unique=true, tol_weak=0, return_ids=false, keep=Int[])
+function minrep(A::Matrix{<: Real},b::Vector{<: Real};sense=Int32[],max_radius=1e30, check_unique=true, tol_weak=0, return_ids=false, keep=Int[],daqp_settings=nothing)
 
     # Setup DAQP workspace 
     nth,m = size(A)  
@@ -22,7 +23,7 @@ function minrep(A::Matrix{<: Real},b::Vector{<: Real};sense=Int32[],max_radius=1
     unsafe_store!(Ptr{Cint}(p+fieldoffset(DAQP.Workspace,4)),ms) # set ms 
 
     # Produce minimal representation
-    A,b,nonred_ids = minrep(p;check_unique,tol_weak,keep)
+    A,b,nonred_ids = minrep(p;check_unique,tol_weak,keep,daqp_settings)
 
     # Free DAQP workspace
     DAQP.free_c_workspace(p);
@@ -30,13 +31,16 @@ function minrep(A::Matrix{<: Real},b::Vector{<: Real};sense=Int32[],max_radius=1
 end
 
 # Minrep interal DAQP 
-function minrep(p::Ptr{Cvoid}; check_unique=true, tol_weak=0,keep=Int[])
+function minrep(p::Ptr{DAQPBase.Workspace}; check_unique=true, tol_weak=0,keep=Int[],
+    daqp_settings = nothing)
 
     daqp_ws = unsafe_load(Ptr{DAQP.Workspace}(p))
     m,n = daqp_ws.m, daqp_ws.n
     sense = unsafe_wrap(Vector{Cint}, daqp_ws.sense, m, own=false)
     A = unsafe_wrap(Matrix{Cdouble}, daqp_ws.M, (n,m), own=false)
     b= unsafe_wrap(Vector{Cdouble}, daqp_ws.dupper, m, own=false)
+
+    !isnothing(daqp_settings) && settings(p,daqp_settings)
 
     # Start finding redundant constraints
     is_redundant = -ones(Cint,m); 

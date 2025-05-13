@@ -21,14 +21,16 @@ end
     isempty(p)
 Return true if `p` ``\\neq \\emptyset`` 
 """
-function Base.:isempty(p::Polyhedron;sense=nothing,validate=false)
+function Base.:isempty(p::Polyhedron;sense=nothing,validate=false, daqp_settings=nothing)
     return isempty(p.A,p.b;sense,validate)
 end
-function Base.:isempty(A::Matrix{<:Real}, b::Vector{<:Real};sense = nothing,validate=false)
+function Base.:isempty(A::Matrix{<:Real}, b::Vector{<:Real};sense = nothing,
+                       validate=false, daqp_settings=nothing)
     nth,m = size(A)  
     bl = fill(-1e30,m)
     sense = isnothing(sense) ? zeros(Int32,m) : sense
-    x,fval,exitflag,info = DAQP.quadprog(DAQP.QPj(zeros(0,0),zeros(0),A,b,bl,sense;A_rowmaj=true));
+    x,fval,exitflag,info = DAQP.quadprog(DAQP.QPj(zeros(0,0),zeros(0),A,b,bl,sense;A_rowmaj=true),
+                                        settings=daqp_settings);
     if(validate && exitflag == -1)
         @inbounds begin
             Atlam = zeros(nth)
