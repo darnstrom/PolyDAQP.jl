@@ -37,4 +37,7 @@ export slice
 
 include("vrep.jl")
 
+include("normalize.jl")
+export normalize!
+
 end # module

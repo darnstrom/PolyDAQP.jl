@@ -9,6 +9,7 @@ end
 function eliminate(A::Matrix{<:Real},b::Vector{<:Real},ids::Vector{<:Integer};tol_weak=0)
     length(ids) == 0 && return A,b
 
+    normalize!(A,b) # Make sure A is normalized
     A,b = minrep(A,b) # Start with  redundancy removal 
 
     ids = sort(ids,rev = true) #TODO: allow for other ordering
@@ -36,13 +37,17 @@ function eliminate(A::Matrix{<:Real},b::Vector{<:Real},ids::Vector{<:Integer};to
             for jn in In
                 Hcand = H[:,jp] .| H[:,jn]
                 sum(Hcand) > level+1 && continue # Chernikov
-                An = hcat(An, A[id,jp]*A[mask,jn] - A[id,jn]*A[mask,jp])
-                bn = vcat(bn, A[id,jp]*b[jn] - A[id,jn]*b[jp])
+                anew = A[id,jp]*A[mask,jn] - A[id,jn]*A[mask,jp]
+                bnew = A[id,jp]*b[jn] - A[id,jn]*b[jp]
                 #normalize
-                new_row = size(An,2)
-                nrm = norm(view(An,:,new_row))
-                An[:,new_row] ./= nrm; bn[new_row]/=nrm
-                Hn = hcat(Hn,Hcand)
+                nrm = norm(anew)
+                if(nrm > 1e-12)
+                    anew ./= nrm
+                    bnew /= nrm
+                    An = hcat(An, anew)
+                    bn = vcat(bn, bnew)
+                    Hn = hcat(Hn,Hcand)
+                end
             end
         end
         A,b,nonred_ids = minrep(An,bn;tol_weak,return_ids=true)
