@@ -152,5 +152,6 @@ end
     pl = pplot([p, q]);
 
     d = RecipesBase.apply_recipe(Dict{Symbol,Any}(),p)
-    #d = RecipesBase.apply_recipe(Dict{Symbol,Any}(),[p,q])
+    d = RecipesBase.apply_recipe(Dict{Symbol,Any}(),[(p,(v->ones(2)'v+1))])
+    d = RecipesBase.apply_recipe(Dict{Symbol,Any}(),[p,q])
 end

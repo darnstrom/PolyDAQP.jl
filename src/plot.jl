@@ -10,6 +10,11 @@ using RecipesBase
 end
 
 @recipe function f(ps::Vector{Polyhedron})
+    fill_z = get(plotattributes, :fill_z, nothing)
+    if(!isnothing(fill_z))
+        clims --> extrema(fill_z).+ (-0.5,0.5)
+        fill_z  = (fill_z isa AbstractVector) ? fill_z : [fill_z for _ in 1:length(ps)]
+    end
     for (k,p) in enumerate(ps)
         size(p.A,1) != 2 && error("Only plotting for two-dimensional Polyhedron is supported")
         vs=vrep_2d(minrep(p))
@@ -17,10 +22,26 @@ end
         @series begin
             seriestype --> :shape
             legend --> false
-            #if(!isnothing(z))
-            #    fill_z --> z[k]
-            #end
+            if !isnothing(fill_z)
+                fill_z := fill_z[k]
+            end
             [first.(vs);first(vs[1])], [last.(vs);last(vs[1])]
+        end
+    end
+end
+
+@recipe function f(ps::Vector{<:Tuple{Polyhedron,Function}})
+    for (k,(p,fz)) in enumerate(ps)
+        size(p.A,1) != 2 && error("Only plotting for two-dimensional Polyhedron is supported")
+        vs=vrep_2d(minrep(p))
+        nv = length(vs)
+        nv == 0  && continue
+        z = fz.(vs)
+        @series begin
+            st --> :mesh3d
+            legend --> false
+            connections--> (zeros(Int, nv-2),collect(1:nv-2),collect(2:nv-1))
+            (first.(vs), last.(vs),z)
         end
     end
 end

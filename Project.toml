@@ -1,7 +1,7 @@
 name = "PolyDAQP"
 uuid = "be5c70c9-e47a-4559-82a9-cba980583202"
 authors = ["Daniel Arnström <daniel.arnstrom@liu.se>"]
-version = "0.3.6"
+version = "0.3.7"
 
 [deps]
 DAQPBase = "833476c3-a8c0-4073-9b64-6473509843fe"
