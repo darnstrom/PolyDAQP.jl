@@ -60,7 +60,7 @@ function minrep(p::Ptr{DAQPBase.Workspace}; check_unique=true, tol_weak=0,keep=I
 
         sense[i] = 5; # Force ith constraint to equality
         b[i]+=tol_weak; # displace  
-        ccall((:add_constraint,DAQP.libdaqp),Cint,(Ptr{Cvoid},Cint,Float64),p,i-1,1.0)
+        ccall((:daqp_add_constraint,DAQP.libdaqp),Cint,(Ptr{Cvoid},Cint,Float64),p,i-1,1.0)
 
         # Check if system is infeasible (infeasible => reudandant) 
         exitflag =ccall((:daqp_ldp,DAQP.libdaqp), Int32, (Ptr{Cvoid},),p);
@@ -77,7 +77,7 @@ function minrep(p::Ptr{DAQPBase.Workspace}; check_unique=true, tol_weak=0,keep=I
             end
         end
         b[i] -= tol_weak;# restore 
-        ccall((:deactivate_constraints,DAQP.libdaqp), Cvoid, (Ptr{Cvoid},),p); # cleanup sense
+        ccall((:daqp_deactivate_constraints,DAQP.libdaqp), Cvoid, (Ptr{Cvoid},),p); # cleanup sense
     end
 
     # Check for unique
