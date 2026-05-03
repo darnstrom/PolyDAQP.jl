@@ -4,9 +4,8 @@
 Remove constraints for the polyhedron `p` ``= \\{x : A' x ≤ b\\}`` 
 such that `q` ``= \\{x : C x ≤ d\\}  = \\{x : A' x ≤ b\\}``, with `size(C,2)` ≤ `size(A,2)` 
 """
-function minrep(p::Polyhedron;sense=Int32[],keep=Int[],tol_weak=0,
-        check_unique=false,daqp_settings=nothing)
-    return(Polyhedron(minrep(p.A,p.b;sense,keep,tol_weak,check_unique,daqp_settings)...))
+function minrep(p::Polyhedron;kwargs...)
+    return(Polyhedron(minrep(p.A,p.b;kwargs...)...))
 end
 function minrep(A::Matrix{<: Real},b::Vector{<: Real};sense=Int32[],max_radius=1e30, check_unique=true, tol_weak=0, return_ids=false, keep=Int[],daqp_settings=nothing)
 
@@ -72,7 +71,7 @@ function minrep(p::Ptr{DAQPBase.Workspace}; check_unique=true, tol_weak=0,keep=I
         else
             is_redundant[i]=0
             sense[i] &=~4; # Should be modifiable in later iterations 
-            if(exitflag==1) # All activate constraints must also be nonredundant 
+            if(exitflag==1 && tol_weak == 0) # All activate nonredundant (might be weak)
                 is_redundant[AS.+1] .=0; 
             end
         end
